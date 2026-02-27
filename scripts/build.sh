@@ -16,13 +16,12 @@ module load git/2.50.1
 
 # Setup environment
 BASE_DIR="/projects/comp468/aj162/"
+mkdir -p $BASE_DIR/cache/llama.cpp
 PROJECT_DIR="${BASE_DIR}/src/llama.cpp"
-CACHE_DIR="${BASE_DIR}/cache/llama.cpp"
-cd $PROJECT_DIR
 
 # Environment variables
-mkdir -p $CACHE_DIR
-ln -s $CACHE_DIR ~/.cache/llama.cpp
+export LLAMA_CACHE="$BASE_DIR/cache/llama.cpp"
+export HF_HOME="$BASE_DIR/cache/llama.cpp"
 
 # 2. Identify Connection Info
 NODE_HOSTNAME=$(hostname)
@@ -30,6 +29,7 @@ MY_USER=$(whoami)
 PORT=8080
 
 # Configure the build
+cd $PROJECT_DIR
 cmake -B build
 
 # Compile using all 8 CPU cores
@@ -44,10 +44,11 @@ echo "==============================================================="
 echo "  STEP 1: Open a NEW terminal on your local machine."
 echo "  STEP 2: Run this exact command to create the tunnel:"
 echo ""
-echo "  ssh -L ${PORT}:${NODE_HOSTNAME}:${PORT} ${MY_USER}@YOUR_CLUSTER_LOGIN_ADDRESS"
+echo "  ssh -L ${PORT}:${NODE_HOSTNAME}:${PORT} ${MY_USER}@nots.crc.rice.edu"
 echo ""
 echo "  STEP 3: Open your browser and go to: http://localhost:${PORT}"
 echo "==============================================================="
 
 # Start the server
-./llama-server -hf ggml-org/gemma-3-1b-it-GGUF --host 0.0.0.0 --port 8080 -ngl 0 -t 8 --log-disable > /dev/null 2>&1
+# Will download quantized model
+./llama-server -hf ggml-org/gemma-3-1b-it-GGUF --host 0.0.0.0 --port 8080 -ngl 0 -t 8 --log-disable
