@@ -19,6 +19,7 @@
 
 ### Installation steps and dependencies
 - Edit the `BASE_DIR` variable in `scripts/build.sh` to point to your allocated project space. This redirects large model weights and Hugging Face assets away from your home directory to stay within disk quotas.
+- Clone [my fork](https://github.com/04AJ/llama.cpp) into `BASE_DIR/src`
 - Submit the Job: Launch the build and server process:
 ```bash
     sbatch scripts/build.sh

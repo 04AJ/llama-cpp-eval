@@ -8,6 +8,7 @@
 #SBATCH --error=logs/build_%j.err
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=4G
+#SBATCH --gres=gpu:volta:1
 #SBATCH --time=00:45:00
 
 # Load modules
@@ -17,16 +18,14 @@ module load git/2.50.1
 # Setup environment
 BASE_DIR="/projects/comp468/aj162/"
 mkdir -p $BASE_DIR/cache/llama.cpp
+mkdir -p "${BASE_DIR}/evaluation"
+
 PROJECT_DIR="${BASE_DIR}/src/llama.cpp"
+
 
 # Environment variables
 export LLAMA_CACHE="$BASE_DIR/cache/llama.cpp"
 export HF_HOME="$BASE_DIR/cache/llama.cpp"
-
-# Identify Connection Info
-NODE_HOSTNAME=$(hostname)
-MY_USER=$(whoami)
-PORT=8080
 
 # Configure the build
 cd $PROJECT_DIR
@@ -38,17 +37,6 @@ cmake --build build --config Release -j 8
 # Obtaining and quantizing the model
 cd build/bin/
 
-echo "==============================================================="
-echo "  LLAMA CPU SERVER IS STARTING!"
-echo "==============================================================="
-echo "  STEP 1: Open a NEW terminal on your local machine."
-echo "  STEP 2: Run this exact command to create the tunnel:"
-echo ""
-echo "  ssh -L ${PORT}:${NODE_HOSTNAME}:${PORT} ${MY_USER}@nots.crc.rice.edu"
-echo ""
-echo "  STEP 3: Open your browser and go to: http://localhost:${PORT}"
-echo "==============================================================="
 
-# Start the server
-# Will download quantized model
-./llama-server -hf ggml-org/gemma-3-1b-it-GGUF --host 0.0.0.0 --port 8080 -ngl 0 -t 8 --log-disable
+# Start bench mark
+./llama-bench -n 0 -p 1024 -b 128,256,512,1024 -o csv > "${BASE_DIR}/evaluation/results_${SLURM_JOB_ID}.csv"
