@@ -30,3 +30,17 @@
 ### Issues encountered
 - During initial execution, the application defaulted to the user's home directory (`~/.cache`), threatening disk quota limits. [Documentation](https://huggingface.co/docs/huggingface_hub/guides/manage-cache) wasn't clear about setting up llama.cpp cache directory for `llama-server`
     - **Solution**: [`LLAMA_CACHE`](https://github.com/ggml-org/llama.cpp/pull/7826) environment variable 
+
+
+---
+## Project Structure
+### Investigating the tensor parallelism gap in llama.cpp
+* [Tensor Parallelism](https://github.com/ggml-org/llama.cpp/issues/9086) issue on Xeon Chips
+### Preliminary fixes
+* Correct [thread affinity](https://github.com/ggml-org/llama.cpp/issues/19110) error
+### Identifying root cause
+* `malloc` in `ggml_mul_mat` ignores NUMA topology
+* NUMA-local wdata buffer in `ggml_mul_mat`
+* Demonstrate measurable gains on dual-socket Xeon hardware
+### Propose full TP as future work
+* Tensor parallelism on Xeon CPUs

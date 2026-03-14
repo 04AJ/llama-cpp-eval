@@ -15,9 +15,8 @@ module load GCCcore/14.3.0
 module load git/2.50.1
 
 # Setup environment
-BASE_DIR="/projects/comp468/aj162/"
+source "$HOME/llama-cpp-eval/build/config.sh"
 mkdir -p $BASE_DIR/cache/llama.cpp
-PROJECT_DIR="${BASE_DIR}/src/llama.cpp"
 
 # Environment variables
 export LLAMA_CACHE="$BASE_DIR/cache/llama.cpp"

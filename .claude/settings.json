@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//projects/comp468/aj162/src/llama.cpp/ggml/src/ggml-cpu/**)"
+    ]
+  }
+}
