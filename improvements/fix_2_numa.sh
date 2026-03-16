@@ -28,10 +28,10 @@ export HF_HOME="$BASE_DIR/cache/llama.cpp"
 #   3  llama-3b   ~3.3 GB
 #   4  llama-8b   ~8.5 GB  (recommended: largest model = most memory pressure)
 # ---------------------------------------------------------------------------
-MODEL="llama-3b"
+MODEL="llama-8b"
 source "$HOME/llama-cpp-eval/build/models.sh"
 
-NUMA_MODE="isolate"
+NUMA_MODE="distribute"  # --numa mode to test (e.g. "isolate", "distribute", "interleave")
 
 ORIG_BENCH="${ARCHIVE_DIR}/build/bin/llama-bench"
 FIXED_BENCH="${PROJECT_DIR}/build/bin/llama-bench"
@@ -50,10 +50,10 @@ THREADS="8,16,32,40,48,64,80"
 # STEP 1 -- Build both binaries
 # ---------------------------------------------------------------------------
 # echo ""
-# echo "[1/5] Building ORIGINAL binary (no NUMA row partition) ..."
-# cd "$ARCHIVE_DIR"
-# cmake -B build > /dev/null 2>&1
-# cmake --build build --config Release -j 8 2>&1 | tail -3
+echo "[1/5] Building ORIGINAL binary (no NUMA row partition) ..."
+cd "$ARCHIVE_DIR"
+cmake -B build > /dev/null 2>&1
+cmake --build build --config Release -j 8 2>&1 | tail -3
 
 echo ""
 echo "[2/5] Building FIXED binary (NUMA-aware ir0 partition) ..."
@@ -76,15 +76,17 @@ fi
 # ---------------------------------------------------------------------------
 # STEP 3 -- Run benchmarks (--numa isolate, fixed thread count)
 # ---------------------------------------------------------------------------
-# echo ""
-# echo "[4/5] Running llama-bench on ORIGINAL binary  (--numa $NUMA_MODE, -t $THREADS) ..."
-# "$ORIG_BENCH" -m "$MODEL_FILE" \
-#     --numa "$NUMA_MODE" \
-#     -t "$THREADS" \
-#     -p 512 -n 128 -o csv \
-#     > "$ORIG_CSV"
+echo ""
+echo "[4/5] Running llama-bench on ORIGINAL binary  (--numa $NUMA_MODE, -t $THREADS) ..."
+unset LLAMA_NUMA_BIND_ROWS
+"$ORIG_BENCH" -m "$MODEL_FILE" \
+    --numa "$NUMA_MODE" \
+    -t "$THREADS" \
+    -p 512 -n 128 -o csv \
+    > "$ORIG_CSV"
 
 echo "      Running llama-bench on FIXED binary  (--numa $NUMA_MODE, -t $THREADS) ..."
+export LLAMA_NUMA_BIND_ROWS=1
 "$FIXED_BENCH" -m "$MODEL_FILE" \
     --numa "$NUMA_MODE" \
     -t "$THREADS" \
