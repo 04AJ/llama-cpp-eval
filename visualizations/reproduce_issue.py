@@ -18,7 +18,7 @@ tg = df[df["n_gen"]    > 0].sort_values("n_threads")
 SOCKET_BOUNDARY = 40   # Xeon Gold 6230: 20 cores/socket × 2 sockets
 
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
-fig.suptitle("llama 8B Q8_0 — performance vs thread count (no NUMA fix)", fontsize=13)
+fig.suptitle("llama 8B Q8_0 — performance vs thread count", fontsize=13)
 
 for ax, data, title, ylabel in [
     (axes[0], pp, "Prompt processing  (pp, 512 tokens)", "tokens / sec"),
@@ -26,7 +26,6 @@ for ax, data, title, ylabel in [
 ]:
     threads = data["n_threads"].values
     ts      = data["avg_ts"].values
-    std     = data["stddev_ts"].values
 
     # shade cross-socket region
     ax.axvspan(SOCKET_BOUNDARY, threads.max() + 4, color="#ffebee", alpha=0.6,
@@ -38,23 +37,8 @@ for ax, data, title, ylabel in [
             "socket boundary\n(40 threads)", color="#e53935",
             fontsize=8, va="top")
 
-    # main line + stddev band
+    # main line
     ax.plot(threads, ts, marker="o", color="#1565C0", linewidth=2, zorder=3)
-    ax.fill_between(threads, ts - std, ts + std, color="#1565C0", alpha=0.15)
-
-    # find and annotate the biggest single-step drop
-    drops = [(ts[i] - ts[i+1], i) for i in range(len(ts) - 1)]
-    drop_val, cliff_i = max(drops, key=lambda x: x[0])
-    if drop_val > 0:
-        cliff_x = threads[cliff_i + 1]
-        cliff_y = ts[cliff_i + 1]
-        ax.annotate(
-            f"−{drop_val:.1f} tok/s\n({threads[cliff_i]}→{cliff_x} threads)",
-            xy=(cliff_x, cliff_y),
-            xytext=(cliff_x + 4, cliff_y + drop_val * 0.4),
-            arrowprops=dict(arrowstyle="->", color="#b71c1c"),
-            color="#b71c1c", fontsize=8, fontweight="bold",
-        )
 
     ax.set_title(title)
     ax.set_xlabel("threads")
@@ -64,7 +48,7 @@ for ax, data, title, ylabel in [
 
     handles = [
         mpatches.Patch(color="#ffebee", label="cross-socket region"),
-        plt.Line2D([0], [0], color="#1565C0", marker="o", label="avg tok/s ± stddev"),
+        plt.Line2D([0], [0], color="#1565C0", marker="o", label="avg tok/s"),
         plt.Line2D([0], [0], color="#e53935", linestyle="--", label="socket boundary"),
     ]
     ax.legend(handles=handles, fontsize=8)
