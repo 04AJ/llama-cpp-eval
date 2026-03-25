@@ -37,9 +37,10 @@ source "$HOME/llama-cpp-eval/build/models.sh"
 ORIG_BENCH="${ARCHIVE_DIR}/build/bin/llama-bench"
 FIXED_BENCH="${PROJECT_DIR}/build/bin/llama-bench"
 
-OUT_DIR="${EVAL_PROJECT_DIR}/evaluation/numa_compare_${MODEL}_default"
+OUT_DIR="${EVAL_PROJECT_DIR}/evaluation/numa_compare_${MODEL}_three_way"
 mkdir -p "$OUT_DIR"
 ORIG_CSV="${OUT_DIR}/numa_original_${SLURM_JOB_ID}.csv"
+DISTRIBUTE_CSV="${OUT_DIR}/numa_distribute_${SLURM_JOB_ID}.csv"
 FIXED_CSV="${OUT_DIR}/numa_fixed_${SLURM_JOB_ID}.csv"
 COMBINED_CSV="${OUT_DIR}/numa_compare_${SLURM_JOB_ID}.csv"
 
@@ -76,7 +77,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# STEP 3 -- Run benchmarks (no --numa, fixed thread count)
+# STEP 3 -- Run benchmarks (three-way comparison)
 # ---------------------------------------------------------------------------
 echo ""
 echo "[4/5] Running llama-bench on ORIGINAL binary  (no --numa, -t $THREADS) ..."
@@ -85,6 +86,14 @@ unset LLAMA_NUMA_BIND_ROWS
     -t "$THREADS" \
     -p 512 -n 128 -o csv \
     > "$ORIG_CSV"
+
+echo "      Running llama-bench on ORIGINAL binary  (--numa distribute, -t $THREADS) ..."
+unset LLAMA_NUMA_BIND_ROWS
+"$ORIG_BENCH" -m "$MODEL_FILE" \
+    --numa distribute \
+    -t "$THREADS" \
+    -p 512 -n 128 -o csv \
+    > "$DISTRIBUTE_CSV"
 
 echo "      Running llama-bench on FIXED binary  (no --numa, LLAMA_NUMA_BIND_ROWS=1, -t $THREADS) ..."
 export LLAMA_NUMA_BIND_ROWS=1
@@ -99,17 +108,19 @@ export LLAMA_NUMA_BIND_ROWS=1
 echo ""
 echo "[5/5] Merging results into $COMBINED_CSV ..."
 
-head -1 "$ORIG_CSV"  | awk '{print "binary," $0}'    >  "$COMBINED_CSV"
-tail -n +2 "$ORIG_CSV"  | awk '{print "original," $0}' >> "$COMBINED_CSV"
-tail -n +2 "$FIXED_CSV" | awk '{print "fixed," $0}'    >> "$COMBINED_CSV"
+head -1 "$ORIG_CSV"  | awk '{print "binary," $0}'         >  "$COMBINED_CSV"
+tail -n +2 "$ORIG_CSV"        | awk '{print "original," $0}'   >> "$COMBINED_CSV"
+tail -n +2 "$DISTRIBUTE_CSV"  | awk '{print "distribute," $0}' >> "$COMBINED_CSV"
+tail -n +2 "$FIXED_CSV"       | awk '{print "fixed," $0}'      >> "$COMBINED_CSV"
 
 echo ""
 echo "-------------------------------------------------------------------"
 echo "  Results written to: $COMBINED_CSV"
 echo ""
 echo "  Row counts:"
-echo "    original rows : $(tail -n +2 "$ORIG_CSV"  | wc -l)"
-echo "    fixed rows    : $(tail -n +2 "$FIXED_CSV" | wc -l)"
+echo "    original rows    : $(tail -n +2 "$ORIG_CSV"       | wc -l)"
+echo "    distribute rows  : $(tail -n +2 "$DISTRIBUTE_CSV" | wc -l)"
+echo "    fixed rows       : $(tail -n +2 "$FIXED_CSV"      | wc -l)"
 echo "-------------------------------------------------------------------"
 echo ""
 echo "  Preview (binary / test / avg tokens per second):"

@@ -44,7 +44,35 @@ cmake --build build --config Release -j 8
 # Text generation (tg): generating a sequence of tokens (-n)
 # Prompt processing + text generation (pg): processing a prompt followed by generating a sequence of tokens (-pg)
 
-cd build/bin/
-./llama-bench -m "$MODEL_FILE" -t 8,16,32,40,48,64,80 -p 512 -n 128 -o csv > "${EVAL_PROJECT_DIR}/evaluation/reproduce_issue_${SLURM_JOB_ID}.csv"
+CSV="${EVAL_PROJECT_DIR}/evaluation/reproduce_issue/reproduce_issue_${SLURM_JOB_ID}.csv"
+MD="${EVAL_PROJECT_DIR}/evaluation/reproduce_issue/reproduce_issue_${SLURM_JOB_ID}.md"
+mkdir -p "${EVAL_PROJECT_DIR}/evaluation/reproduce_issue"
 
-echo "Benchmark complete. Results saved to: ${EVAL_PROJECT_DIR}/thread-bug_${SLURM_JOB_ID}.csv"
+cd build/bin/
+./llama-bench -m "$MODEL_FILE" -t 8,16,32,40,48,64,80 -p 512 -n 128 -o csv > "$CSV"
+
+# Post-process CSV → markdown (model_type, n_threads, n_prompt, n_gen, avg_ts, stddev_ts)
+awk -F',' '
+NR==1 {
+    for (i=1; i<=NF; i++) {
+        gsub(/"/, "", $i)
+        if ($i=="model_type")  c_model=i
+        if ($i=="n_threads")   c_threads=i
+        if ($i=="n_prompt")    c_pp=i
+        if ($i=="n_gen")       c_tg=i
+        if ($i=="avg_ts")      c_avg=i
+        if ($i=="stddev_ts")   c_std=i
+    }
+    printf "| model | threads | n_prompt | n_gen | avg tok/s | stddev tok/s |\n"
+    printf "|-------|---------|----------|-------|-----------|--------------|\n"
+    next
+}
+{
+    for (i=1; i<=NF; i++) gsub(/"/, "", $i)
+    printf "| %s | %s | %s | %s | %s | %s |\n",
+        $c_model, $c_threads, $c_pp, $c_tg, $c_avg, $c_std
+}' "$CSV" > "$MD"
+
+echo "Benchmark complete."
+echo "  CSV: $CSV"
+echo "  MD:  $MD"
