@@ -4,8 +4,8 @@
 #SBATCH --partition=commons
 #SBATCH --reservation=classroom
 #SBATCH --ntasks=1 
-#SBATCH --output=logs/eval_%j.log
-#SBATCH --error=logs/eval_%j.err
+#SBATCH --output=logs/reproduce_%j.log
+#SBATCH --error=logs/reproduce_%j.err
 #SBATCH --cpus-per-task=80   
 #SBATCH --mem=32G
 #SBATCH --time=00:45:00
@@ -29,11 +29,11 @@ export HF_HOME="$BASE_DIR/cache/llama.cpp"
 #   3  llama-3b   ~3.3 GB
 #   4  llama-8b   ~8.5 GB
 # ---------------------------------------------------------------------------
-MODEL="llama-1b"
+MODEL="llama-8b"
 source "$HOME/llama-cpp-eval/build/models.sh"
 
-# Configure and build
-cd $PROJECT_DIR
+# Configure and build archive (unpatched) binary
+cd $ARCHIVE_DIR
 cmake -B build
 cmake --build build --config Release -j 8
 
@@ -48,8 +48,7 @@ CSV="${EVAL_PROJECT_DIR}/evaluation/reproduce_issue/reproduce_issue_${SLURM_JOB_
 MD="${EVAL_PROJECT_DIR}/evaluation/reproduce_issue/reproduce_issue_${SLURM_JOB_ID}.md"
 mkdir -p "${EVAL_PROJECT_DIR}/evaluation/reproduce_issue"
 
-cd build/bin/
-./llama-bench -m "$MODEL_FILE" -t 8,16,32,40,48,64,80 -p 512 -n 128 -o csv > "$CSV"
+"$ARCHIVE_DIR/build/bin/llama-bench" -m "$MODEL_FILE" -t 8,16,32,40,48,64,80 -p 512 -n 128 -o csv > "$CSV"
 
 # Post-process CSV → markdown (model_type, n_threads, n_prompt, n_gen, avg_ts, stddev_ts)
 awk -F',' '
