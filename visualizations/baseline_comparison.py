@@ -5,7 +5,7 @@ import os
 
 CSV = sys.argv[1] if len(sys.argv) > 1 else (
     os.path.join(os.path.dirname(__file__),
-                 "../evaluation/numa_compare_llama-8b_default/numa_compare_7829121.csv")
+                 "../evaluation/numa_compare_llama-8b_three_way/numa_compare_7831489.csv")
 )
 
 df = pd.read_csv(CSV)
@@ -24,8 +24,10 @@ for ax, data, title, ylabel in [
     (axes[0], pp, "Prompt processing  (pp, 512 tokens)", "tokens / sec"),
     (axes[1], tg, "Token generation   (tg, 128 tokens)", "tokens / sec"),
 ]:
-    for binary, grp in data.groupby("binary"):
-        grp = grp.sort_values("n_threads")
+    for binary in ["original", "fixed"]:
+        grp = data[data["binary"] == binary].sort_values("n_threads")
+        if grp.empty:
+            continue
         ax.plot(grp["n_threads"], grp["avg_ts"],
                 marker="o", label=LABELS[binary],
                 color=COLORS.get(binary, None), linewidth=2)
