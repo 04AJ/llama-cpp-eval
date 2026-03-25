@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=fix2-numa-bench
+#SBATCH --job-name=fix4-isolate
 #SBATCH --account=commons
 #SBATCH --partition=commons
 #SBATCH --reservation=classroom
 #SBATCH --ntasks=1
-#SBATCH --output=logs/fix2_%j.log
-#SBATCH --error=logs/fix2_%j.err
+#SBATCH --output=logs/fix4_%j.log
+#SBATCH --error=logs/fix4_%j.err
 #SBATCH --cpus-per-task=80
 #SBATCH --mem=32G
 #SBATCH --time=06:00:00
@@ -31,12 +31,14 @@ export HF_HOME="$BASE_DIR/cache/llama.cpp"
 MODEL="llama-8b"
 source "$HOME/llama-cpp-eval/build/models.sh"
 
-NUMA_MODE="distribute"  # --numa mode to test (e.g. "isolate", "distribute", "interleave")
+NUMA_MODE="isolate"  # --numa mode to test (e.g. "isolate", "distribute", "interleave")
 
 ORIG_BENCH="${ARCHIVE_DIR}/build/bin/llama-bench"
 FIXED_BENCH="${PROJECT_DIR}/build/bin/llama-bench"
 
-OUT_DIR="${EVAL_PROJECT_DIR}/evaluation"
+OUT_DIR="${EVAL_PROJECT_DIR}/evaluation/$numa_compare_${MODEL}_${NUMA_MODE}"
+mkdir -p "$OUT_DIR"
+
 ORIG_CSV="${OUT_DIR}/numa_original_${SLURM_JOB_ID}.csv"
 FIXED_CSV="${OUT_DIR}/numa_fixed_${SLURM_JOB_ID}.csv"
 COMBINED_CSV="${OUT_DIR}/numa_compare_${SLURM_JOB_ID}.csv"
@@ -49,7 +51,7 @@ THREADS="8,16,32,40,48,64,80"
 # ---------------------------------------------------------------------------
 # STEP 1 -- Build both binaries
 # ---------------------------------------------------------------------------
-# echo ""
+echo ""
 echo "[1/5] Building ORIGINAL binary (no NUMA row partition) ..."
 cd "$ARCHIVE_DIR"
 cmake -B build > /dev/null 2>&1
@@ -86,7 +88,6 @@ unset LLAMA_NUMA_BIND_ROWS
     > "$ORIG_CSV"
 
 echo "      Running llama-bench on FIXED binary  (--numa $NUMA_MODE, -t $THREADS) ..."
-export LLAMA_NUMA_BIND_ROWS=1
 "$FIXED_BENCH" -m "$MODEL_FILE" \
     --numa "$NUMA_MODE" \
     -t "$THREADS" \
