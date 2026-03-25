@@ -15,7 +15,7 @@ pp = df[df["n_prompt"] > 0].copy()   # prompt processing (512 tokens)
 tg = df[df["n_gen"]    > 0].copy()   # token generation  (128 tokens)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-fig.suptitle("llama 8B Q8_0 — original vs mbind fix (no --numa)", fontsize=13)
+fig.suptitle("llama 8B Q8_0 — original vs mbind fix", fontsize=13)
 
 COLORS = {"original": "#888888", "fixed": "#2196F3"}
 LABELS = {"original": "original (no NUMA)", "fixed": "fixed (LLAMA_NUMA_BIND_ROWS=1)"}
@@ -64,7 +64,7 @@ def make_table_fig(data, label):
         orig["avg_ts"].round(2),
         fixed["avg_ts"].round(2),
         deltas,
-        delta_pcts,
+        [f"{v:+.1f}%" for v in delta_pcts],
     ))
     col_labels = ["threads", "original tok/s", "fixed tok/s", "delta tok/s", "delta %"]
 
@@ -88,7 +88,7 @@ def make_table_fig(data, label):
         tbl[0, col].set_text_props(color="white", fontweight="bold")
 
     # colour delta % cells: green = improvement, red = regression
-    for row_idx, (_, _, _, _, dpct) in enumerate(rows, start=1):
+    for row_idx, dpct in enumerate(delta_pcts, start=1):
         color = "#c8e6c9" if dpct > 0 else "#ffcdd2" if dpct < 0 else "#ffffff"
         tbl[row_idx, 4].set_facecolor(color)
 
