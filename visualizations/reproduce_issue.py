@@ -6,7 +6,7 @@ import os
 
 CSV = sys.argv[1] if len(sys.argv) > 1 else (
     os.path.join(os.path.dirname(__file__),
-                 "../evaluation/reproduce_issue/reproduce_issue_7301740.csv")
+                 "../evaluation/reproduce_issue/reproduce_issue_7831543.csv")
 )
 
 df = pd.read_csv(CSV)
