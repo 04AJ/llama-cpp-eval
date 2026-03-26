@@ -30,8 +30,8 @@ export HF_HOME="$BASE_DIR/cache/llama.cpp"
 #   5  deepseek-8b   ~8.5 GB
 #   6  qwen3-vl-4b   ~2.5 GB  (VLM)
 # ---------------------------------------------------------------------------
-MODEL="llama-1b"
-# MODEL="qwen3-vl-4b"
+# MODEL="llama-1b"
+MODEL="qwen3-vl-4b"
 source "$HOME/llama-cpp-eval/build/models.sh"
 
 # Identify Connection Info

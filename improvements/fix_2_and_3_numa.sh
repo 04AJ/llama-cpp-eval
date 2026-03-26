@@ -11,6 +11,7 @@
 #SBATCH --time=06:00:00
 
 # Load modules
+module load CUDA
 module load GCCcore/14.3.0
 module load git/2.50.1
 
