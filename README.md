@@ -41,7 +41,7 @@ llama-cpp-eval/
 │   ├── reproduce_issue.sh          # Reproduces the baseline thread-count cliff
 │   ├── fix_1_default_thread_count.sh  # Fix 1: physical core count instead of logical
 │   ├── fix_2_and_3_numa.sh         # Fix 2: NUMA-aware row partitioning + mbind at load time
-│   └── fix_4_isolate.sh            # Fix 4: benchmarks llama.cpp's --numa isolate mode
+│   └── benchmark_numa_isolate.sh   # Exploratory: benchmarks llama.cpp's built-in --numa isolate mode
 ├── visualizations/                 # Python scripts that generate plots from evaluation CSVs
 │   ├── baseline_comparison.py
 │   ├── numa_comparison.py
@@ -192,8 +192,8 @@ sbatch improvements/fix_1_default_thread_count.sh
 # Benchmark Fixes 2 + 3 (NUMA row partitioning + mbind)
 sbatch improvements/fix_2_and_3_numa.sh
 
-# Benchmark llama.cpp's built-in --numa isolate mode (comparison point)
-sbatch improvements/fix_4_isolate.sh
+# Exploratory: benchmark llama.cpp's built-in --numa isolate mode
+sbatch improvements/benchmark_numa_isolate.sh
 ```
 
 Each script writes CSV output to the corresponding `evaluation/` subdirectory.
@@ -213,4 +213,4 @@ python numa_comparison.py       # Figure 3: three-way NUMA comparison
 *Figure 2: Prompt-processing throughput — unpatched baseline vs Fix 1 + Fix 2 + Fix 3.*
 
 ![Results vs NUMA modes](imgs/results_against_numa.png)
-*Figure 3: Three-way comparison — original, fixes applied, and llama.cpp's built-in `--numa isolate` mode.*
+*Figure 3: Three-way comparison — original, fixes applied, and llama.cpp's built-in `--numa distribute` mode.*
