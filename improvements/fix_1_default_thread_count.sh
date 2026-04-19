@@ -41,7 +41,7 @@ echo ""
 echo "[1/4] Building ORIGINAL binary (hardware_concurrency) ..."
 cd "$ARCHIVE_DIR"
 cmake -B build > /dev/null 2>&1
-cmake --build build --config Release -j 8 2>&1 | tail -3
+cmake --build build --config Release -j 8 --target llama-server 2>&1 | tail -3
 echo "      Built: $ORIG_BIN"
 
 # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ echo ""
 echo "[2/4] Building FIXED binary (cpu_get_num_physical_cores) ..."
 cd "$PROJECT_DIR"
 cmake -B build > /dev/null 2>&1
-cmake --build build --config Release -j 8 2>&1 | tail -3
+cmake --build build --config Release -j 8 --target llama-server 2>&1 | tail -3
 echo "      Built: $FIXED_BIN"
 
 # ---------------------------------------------------------------------------
