@@ -22,18 +22,15 @@ mkdir -p "$BASE_DIR/cache/llama.cpp"
 export LLAMA_CACHE="$BASE_DIR/cache/llama.cpp"
 export HF_HOME="$BASE_DIR/cache/llama.cpp"
 
-# ---------------------------------------------------------------------------
 # Model selection — set MODEL to a name or number from build/models.sh
 #   1  gemma-1b   ~0.6 GB
 #   2  llama-1b   ~0.7 GB
 #   3  llama-3b   ~3.3 GB
 #   4  llama-8b   ~8.5 GB  (recommended: largest model = most memory pressure)
-# ---------------------------------------------------------------------------
 MODEL="llama-8b"
 source "$HOME/llama-cpp-eval/build/models.sh"
 
 # No --numa flag: use llama.cpp's default (disabled), so all pages land on node 0
-# via first-touch. The mbind fix then redistributes them — that's the improvement we measure.
 
 ORIG_BENCH="${ARCHIVE_DIR}/build/bin/llama-bench"
 FIXED_BENCH="${PROJECT_DIR}/build/bin/llama-bench"
@@ -46,14 +43,9 @@ FIXED_CSV="${OUT_DIR}/numa_fixed_${SLURM_JOB_ID}.csv"
 COMBINED_CSV="${OUT_DIR}/numa_compare_${SLURM_JOB_ID}.csv"
 
 # Sweep across the socket boundary (Xeon Gold 6230: 20 cores/socket, 2 sockets = 40 physical).
-# The cliff at 32→40 is what issue #19110 / Fix 2 targets — we need counts on both
-# sides of 40 to see whether the fix flattens the cross-socket performance drop.
 THREADS="8,16,32,40,48,64,80"
 
-# ---------------------------------------------------------------------------
 # STEP 1 -- Build both binaries
-# ---------------------------------------------------------------------------
-# echo ""
 echo "[1/5] Building ORIGINAL binary (no NUMA row partition) ..."
 cd "$ARCHIVE_DIR"
 cmake -B build > /dev/null 2>&1
@@ -65,9 +57,7 @@ cd "$PROJECT_DIR"
 cmake -B build > /dev/null 2>&1
 cmake --build build --config Release -j 8 2>&1 | tail -3
 
-# ---------------------------------------------------------------------------
 # STEP 2 -- Download model if needed
-# ---------------------------------------------------------------------------
 echo ""
 echo "[3/5] Checking model ..."
 if [ ! -f "$MODEL_FILE" ]; then
@@ -77,9 +67,7 @@ else
     echo "      Model already cached: $MODEL_FILE"
 fi
 
-# ---------------------------------------------------------------------------
 # STEP 3 -- Run benchmarks (three-way comparison)
-# ---------------------------------------------------------------------------
 echo ""
 echo "[4/5] Running llama-bench on ORIGINAL binary  (no --numa, -t $THREADS) ..."
 unset LLAMA_NUMA_BIND_ROWS
@@ -103,9 +91,8 @@ export LLAMA_NUMA_BIND_ROWS=1
     -p 512 -n 128 -o csv \
     > "$FIXED_CSV"
 
-# ---------------------------------------------------------------------------
+
 # STEP 4 -- Merge into a single CSV with a leading "binary" column
-# ---------------------------------------------------------------------------
 echo ""
 echo "[5/5] Merging results into $COMBINED_CSV ..."
 
