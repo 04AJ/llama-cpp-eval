@@ -50,9 +50,7 @@ plt.savefig(out, dpi=150)
 print(f"saved: {out}")
 plt.show()
 
-# ---------------------------------------------------------------------------
 # Table: original vs fixed vs delta for both tests
-# ---------------------------------------------------------------------------
 def make_table_fig(data, label):
     orig  = data[data["binary"] == "original"].sort_values("n_threads")
     fixed = data[data["binary"] == "fixed"].sort_values("n_threads")

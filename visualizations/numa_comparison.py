@@ -24,9 +24,7 @@ LABELS = {
 }
 ORDER = ["distribute", "fixed"]
 
-# ---------------------------------------------------------------------------
 # Line plots: distribute vs fixed
-# ---------------------------------------------------------------------------
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 fig.suptitle("llama 8B Q8_0 — --numa distribute vs mbind fix", fontsize=13)
 
@@ -59,9 +57,7 @@ plt.savefig(out_lines, dpi=150, bbox_inches="tight")
 print(f"saved: {out_lines}")
 plt.show()
 
-# ---------------------------------------------------------------------------
 # Tables: distribute / fixed / delta
-# ---------------------------------------------------------------------------
 def make_table_fig(data, label):
     dist = data[data["binary"] == "distribute"].sort_values("n_threads")
     fix  = data[data["binary"] == "fixed"].sort_values("n_threads")

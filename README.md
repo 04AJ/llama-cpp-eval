@@ -19,7 +19,7 @@
 
 ### Installation steps and dependencies
 1. Edit `BASE_DIR` in `build/config.sh` to point to your allocated project space — this keeps large model weights out of your home directory quota.
-2. Clone [my fork](https://github.com/04AJ/llama.cpp) into `$BASE_DIR/src/llama.cpp` and the unpatched upstream into `$BASE_DIR/src/archive_llama.cpp`.
+2. Clone [my fork](https://github.com/04AJ/llama.cpp) into `$BASE_DIR/src/llama.cpp` and the unpatched [upstream](https://github.com/ggml-org/llama.cpp) into `$BASE_DIR/src/archive_llama.cpp`.
 3. See [Deploy Web Server on NOTS](#deploy-web-server-on-nots) to build and run the server, or [Reproducing Results](#reproducing-results) to run the benchmarks.
 
 ### Issues encountered

@@ -42,7 +42,7 @@ FIXED_CSV="${OUT_DIR}/numa_fixed_${SLURM_JOB_ID}.csv"
 COMBINED_CSV="${OUT_DIR}/numa_compare_${SLURM_JOB_ID}.csv"
 
 # Sweep across the socket boundary (Xeon Gold 6230: 20 cores/socket, 2 sockets = 40 physical).
-# The cliff at 32→40 is what issue #19110 / Fix 2 targets — we need counts on both
+# The cliff at 32 to 40 is what issue #19110 / Fix 2 targets — we need counts on both
 # sides of 40 to see whether the fix flattens the cross-socket performance drop.
 THREADS="8,16,32,40,48,64,80"
 
